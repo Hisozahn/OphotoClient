@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">OphotoClient</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_up">Sign up</string>
+    <string name="user_name">Name</string>
+    <string name="password">Password</string>
+    <string name="sign_up_instead">Sign up instead</string>
+    <string name="repeat_password">Repeat password</string>
+    <string name="sign_in_instead">Sign in instead</string>
+    <string name="feed">Feed</string>
+</resources>
