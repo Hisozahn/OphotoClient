@@ -19,6 +19,8 @@
         </activity>
         <activity android:name="com.client.ophotoclient.SignUpActivity" android:label="@string/sign_up" />
         <activity android:name="com.client.ophotoclient.FeedActivity" android:label="@string/feed" />
+
+        <service android:name=".NetworkService" />
     </application>
 
 </manifest>

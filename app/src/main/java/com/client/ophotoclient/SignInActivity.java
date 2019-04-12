@@ -36,41 +36,19 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     public void onSignInClick(View view) {
-        String name = mUserName.getText().toString();
+        System.out.println("onSignInClick thread: " + Thread.currentThread().getId());
+        String user = mUserName.getText().toString();
         String password = mPassword.getText().toString();
-        JSONObject request;
-        try {
-            request = new JSONObject(String.format("{\"user\": \"%s\", \"password\": \"%s\"}", name, password));
-        }
-        catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-        System.out.println(request.toString());
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.POST, Definitions.singInURL, request,
-                new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        onSignInResponse(response);
-                    }
-                },
-                new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast toast = Toast.makeText(getApplicationContext(),
-                                "Network error", Toast.LENGTH_SHORT);
-                        toast.show();
-                    }
-                });
-
-        jsonObjectRequest.setTag(SIGN_IN_NET_TAG);
-        NetQueue.getInstance(this).addToRequestQueue(jsonObjectRequest);
+        NetRequest.signIn(user, password, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                onSignInResponse(response);
+            }
+            }, null, this);
     }
 
     public void onSignInResponse (JSONObject response) {
+        System.out.println("onSignInResponse thread: " + Thread.currentThread().getId());
         int code;
         String message;
         try {
@@ -93,6 +71,10 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     public void onInsteadClick(View view) {
+        System.out.println("OnInsteadClick thread: " + Thread.currentThread().getId());
+        Intent sintent = new Intent(this, NetworkService.class);
+        startService(sintent);
+
         System.out.println("INST NAME: " + getComponentName().getClassName());
         Intent intent = new Intent(this, SignUpActivity.class);
 
