@@ -5,19 +5,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.android.volley.*;
-import com.android.volley.toolbox.*;
+import com.client.ophotoclient.objects.AuthUser;
+import com.client.ophotoclient.objects.Credentials;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import io.realm.Realm;
 
 public class SignInActivity extends AppCompatActivity {
     private EditText mUserName = null;
     private EditText mPassword = null;
     public static final String EXTRA_USERNAME = "com.client.ophotoclient.USERNAME";
-    public static final String SIGN_IN_NET_TAG = "SignInNet";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,50 +29,40 @@ public class SignInActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         mPassword.getText().clear();
-        NetQueue.getInstance(this).getRequestQueue().cancelAll(SIGN_IN_NET_TAG);
         System.out.println("PAUSE SIGN IN");
     }
 
     public void onSignInClick(View view) {
         System.out.println("onSignInClick thread: " + Thread.currentThread().getId());
-        String user = mUserName.getText().toString();
-        String password = mPassword.getText().toString();
-        NetRequest.signIn(user, password, new Response.Listener<JSONObject>() {
+        final String user = mUserName.getText().toString();
+        final String password = mPassword.getText().toString();
+        NetRequest.signIn(user, password, new Response.Listener<Credentials>() {
             @Override
-            public void onResponse(JSONObject response) {
-                onSignInResponse(response);
+            public void onResponse(Credentials response) {
+                onSignInSuccess(user, response);
             }
             }, null, this);
     }
 
-    public void onSignInResponse (JSONObject response) {
-        System.out.println("onSignInResponse thread: " + Thread.currentThread().getId());
-        int code;
-        String message;
-        try {
-            code = response.getInt("code");
-            message = response.getString("message");
-        }
-        catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-        if (code != 1000) {
-            Toast toast = Toast.makeText(getApplicationContext(),
-                    "Authentication failure: " + message, Toast.LENGTH_SHORT);
-            toast.show();
-            return;
-        }
-        Intent intent = new Intent(SignInActivity.this, FeedActivity.class);
-        intent.putExtra(EXTRA_USERNAME, mUserName.getText().toString());
+    public void onSignInSuccess(String userName, Credentials response) {
+        System.out.println("onSignInSuccess thread: " + Thread.currentThread().getId());
+        Realm realm = Realm.getDefaultInstance();
+
+        realm.beginTransaction();
+
+        final AuthUser oldUser = realm.where(AuthUser.class).findFirst();
+        if (oldUser != null)
+            oldUser.deleteFromRealm();
+        final AuthUser newUser = new AuthUser(userName, response.getToken());
+        realm.copyToRealm(newUser);
+
+        realm.commitTransaction();
+
+        Intent intent = new Intent(SignInActivity.this, MainActivity.class);
         startActivity(intent);
     }
 
     public void onInsteadClick(View view) {
-        System.out.println("OnInsteadClick thread: " + Thread.currentThread().getId());
-        Intent sintent = new Intent(this, NetworkService.class);
-        startService(sintent);
-
         System.out.println("INST NAME: " + getComponentName().getClassName());
         Intent intent = new Intent(this, SignUpActivity.class);
 
