@@ -111,8 +111,8 @@ public class CreatePostFragment extends Fragment {
                 Bitmap scaledBitmap;
                 try {
                     newImage = getBitmapFromUri(data.getData());
-                    scaledBitmap = Bitmap.createScaledBitmap(newImage, 100, 100, true);
-                    mImageView.setImageBitmap(scaledBitmap);
+                    newImage = Bitmap.createScaledBitmap(newImage, 100, 100, true);
+                    mImageView.setImageBitmap(newImage);
                 } catch (IOException ignored) {}
             }
         }

@@ -2,6 +2,7 @@ package com.client.ophotoclient;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.widget.Toast;
 
@@ -10,7 +11,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.client.ophotoclient.objects.Credentials;
 import com.client.ophotoclient.objects.OphotoMessage;
+import com.client.ophotoclient.objects.Post;
 import com.client.ophotoclient.objects.PostResponse;
+import com.client.ophotoclient.objects.PostsResponse;
 
 import org.json.JSONObject;
 
@@ -32,6 +35,8 @@ public class NetRequest {
     private static final String logOutURL = portalURL + "/auth/logout";
     private static final String publishPostURL = portalURL + "/post";
     private static final String getPostsURL = portalURL + "/get_posts";
+    private static final String getPostURL = portalURL + "/get_post";
+
 
     private static final int MAX_T = 3;
 
@@ -94,7 +99,7 @@ public class NetRequest {
     }
 
     public static void getPosts(final String token, final PostType type,
-                                final Response.Listener<PostResponse> listener,
+                                final Response.Listener<PostsResponse> listener,
                                 final Response.ErrorListener errorListener,
                                 final Context context) {
         JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
@@ -102,10 +107,33 @@ public class NetRequest {
             put("search_type", type.toString());
         }});
         System.out.println(request.toString());
-        GsonOphotoRequest<PostResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, getPostsURL,
-                request.toString(), PostResponse.class, listener, getErrorListener(errorListener, context));
+        GsonOphotoRequest<PostsResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, getPostsURL,
+                request.toString(), PostsResponse.class, listener, getErrorListener(errorListener, context));
         NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
     }
+
+    public static void getPost(final String token, final String post_id,
+                                final Response.Listener<Post> listener,
+                                final Response.ErrorListener errorListener,
+                                final Context context) {
+        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+            put("token", token);
+            put("post_id", post_id);
+        }});
+        System.out.println(request.toString());
+        GsonOphotoRequest<PostResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, getPostURL,
+                request.toString(), PostResponse.class, new Response.Listener<PostResponse>() {
+            @Override
+            public void onResponse(PostResponse response) {
+                byte[] decodedString = Base64.decode(response.getImage(), Base64.NO_WRAP);
+                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                Post post = new Post(response.getDescription(), decodedByte);
+                listener.onResponse(post);
+            }
+        }, getErrorListener(errorListener, context));
+        NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
+    }
+
 
     public static void post(final String token, final Bitmap image, final String description,
                             final Response.Listener<OphotoMessage> listener,
@@ -116,7 +144,7 @@ public class NetRequest {
             @Override
             public void run() {
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                image.compress(Bitmap.CompressFormat.JPEG, 0, byteArrayOutputStream);
+                image.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
                 final byte[] byteArray = byteArrayOutputStream.toByteArray();
                 JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
                     put("token", token);

@@ -25,6 +25,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     public void setPosts(List<Post> posts) {
         this.posts = posts;
     }
+    public void setPost(Post post, int position) { posts.set(position, post); }
     public class PostViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         // each data item is just a string in this case
         ImageView image;

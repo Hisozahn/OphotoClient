@@ -1,19 +1,22 @@
 package com.client.ophotoclient.objects;
 
-import java.util.List;
-
 public class PostResponse extends OphotoMessage {
-    private List<String> posts;
+    private String description;
+    private String image;
 
-    public PostResponse(List<String> posts) {
-        this.posts = posts;
+    public String getDescription() {
+        return description;
     }
 
-    public List<String> getPosts() {
-        return posts;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public void setPosts(List<String> posts) {
-        this.posts = posts;
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }

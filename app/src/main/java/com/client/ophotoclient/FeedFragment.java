@@ -15,7 +15,7 @@ import androidx.recyclerview.selection.SelectionTracker;
 import com.android.volley.Response;
 import com.client.ophotoclient.objects.AuthUser;
 import com.client.ophotoclient.objects.Post;
-import com.client.ophotoclient.objects.PostResponse;
+import com.client.ophotoclient.objects.PostsResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,22 +35,38 @@ public class FeedFragment extends Fragment {
         return inflater.inflate(R.layout.feed_fragment, container, false);
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void refresh() {
+        if (mAdapter == null)
+            return;
         final AuthUser user = realm.where(AuthUser.class).findFirst();
-        NetRequest.getPosts(user.getToken(), NetRequest.PostType.FOLLOWING, new Response.Listener<PostResponse>() {
+        NetRequest.getPosts(user.getToken(), NetRequest.PostType.FOLLOWING, new Response.Listener<PostsResponse>() {
             @Override
-            public void onResponse(PostResponse response) {
+            public void onResponse(PostsResponse response) {
                 List<Post> posts = new ArrayList<>();
+                int i = 0;
                 for (String id : response.getPosts()) {
                     System.out.println("Received: " + id);
                     posts.add(new Post(id, null));
+                    final int finalIndex = i;
+                    NetRequest.getPost(user.getToken(), id, new Response.Listener<Post>() {
+                        @Override
+                        public void onResponse(Post response) {
+                            mAdapter.setPost(response, finalIndex);
+                            mAdapter.notifyDataSetChanged();
+                        }
+                    }, null, getContext());
+                    i++;
                 }
                 mAdapter.setPosts(posts);
                 mAdapter.notifyDataSetChanged();
             }
         }, null, getContext());
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        refresh();
 
         RecyclerView recyclerView = getActivity().findViewById(R.id.my_recycler_view);
 

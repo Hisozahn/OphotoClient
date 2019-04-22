@@ -27,12 +27,12 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private Realm realm = Realm.getDefaultInstance();
 
-    private static final Map<Fragment, Integer> fragments;
+    private static final Map<Integer, Fragment> fragments;
     static {
-        Map<Fragment, Integer> aMap = new HashMap<>();
-        aMap.put(new FeedFragment(), R.id.nav_feed);
-        aMap.put(new ProfileFragment(), R.id.nav_profile);
-        aMap.put(new CreatePostFragment(), R.id.nav_create_post);
+        Map<Integer, Fragment> aMap = new HashMap<>();
+        aMap.put(R.id.nav_feed, new FeedFragment());
+        aMap.put(R.id.nav_profile, new ProfileFragment());
+        aMap.put(R.id.nav_create_post, new CreatePostFragment());
         fragments = Collections.unmodifiableMap(aMap);
     }
     @Override
@@ -79,17 +79,21 @@ public class MainActivity extends AppCompatActivity
                 }
             }, getApplicationContext());
         }
-        for (Map.Entry<Fragment, Integer> fragment : fragments.entrySet()) {
-            String fragTag = fragment.getKey().getClass().getSimpleName();
+        if (id == R.id.nav_refresh) {
+            FeedFragment feedFragment = (FeedFragment)fragments.get(R.id.nav_feed);
+            feedFragment.refresh();
+        }
+        for (Map.Entry<Integer, Fragment> fragment : fragments.entrySet()) {
+            String fragTag = fragment.getValue().getClass().getSimpleName();
             boolean isAdded = fragmentManager.findFragmentByTag(fragTag) != null;
-            if (id == fragment.getValue()) {
+            if (id == fragment.getKey()) {
                 if (isAdded)
-                    fragmentManager.beginTransaction().show(fragment.getKey()).commit();
+                    fragmentManager.beginTransaction().show(fragment.getValue()).commit();
                 else
-                    fragmentManager.beginTransaction().add(R.id.container, fragment.getKey(), fragTag).commit();
+                    fragmentManager.beginTransaction().add(R.id.container, fragment.getValue(), fragTag).commit();
             } else {
                 if (isAdded)
-                    fragmentManager.beginTransaction().hide(fragment.getKey()).commit();
+                    fragmentManager.beginTransaction().hide(fragment.getValue()).commit();
             }
         }
 
