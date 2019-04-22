@@ -1,8 +1,10 @@
 package com.client.ophotoclient.objects;
 
-public class Post {
+import android.graphics.Bitmap;
+
+public class Post extends OphotoMessage{
     private String description;
-    private String image;
+    private Bitmap image;
 
     public String getDescription() {
         return description;
@@ -12,15 +14,15 @@ public class Post {
         this.description = description;
     }
 
-    public String getImage() {
+    public Bitmap getImage() {
         return image;
     }
 
-    public void setImage(String image) {
+    public void setImage(Bitmap image) {
         this.image = image;
     }
 
-    public Post(String description, String image) {
+    public Post(String description, Bitmap image) {
         this.description = description;
         this.image = image;
     }

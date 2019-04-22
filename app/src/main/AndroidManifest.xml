@@ -4,7 +4,6 @@
     package="com.client.ophotoclient">
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-
         android:name=".OphotoClientApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -20,8 +19,6 @@
             </intent-filter>
         </activity>
         <activity android:name="com.client.ophotoclient.SignUpActivity" android:label="@string/sign_up" />
-        <activity android:name="com.client.ophotoclient.FeedFragment" android:label="@string/feed" />
-        <activity android:name=".ProfileFragment" />
         <activity android:name=".MainActivity" />
 
         <service android:name=".NetworkService" />

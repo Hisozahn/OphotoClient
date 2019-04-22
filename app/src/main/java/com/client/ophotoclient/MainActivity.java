@@ -12,21 +12,35 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.client.ophotoclient.objects.AuthUser;
+import com.client.ophotoclient.objects.OphotoMessage;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import io.realm.Realm;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    private Realm realm = Realm.getDefaultInstance();
 
-    private FeedFragment feed;
-    private ProfileFragment profile;
-
+    private static final Map<Fragment, Integer> fragments;
+    static {
+        Map<Fragment, Integer> aMap = new HashMap<>();
+        aMap.put(new FeedFragment(), R.id.nav_feed);
+        aMap.put(new ProfileFragment(), R.id.nav_profile);
+        aMap.put(new CreatePostFragment(), R.id.nav_create_post);
+        fragments = Collections.unmodifiableMap(aMap);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        feed = new FeedFragment();
-        profile = new ProfileFragment();
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -46,23 +60,37 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
+        FragmentManager fragmentManager = getSupportFragmentManager();
 
-        Fragment fragment = null;
-        if (id == R.id.nav_feed) {
-            fragment = feed;
-            // Handle the camera action
-        } else if (id == R.id.nav_profile) {
-            fragment = profile;
+        if (id == R.id.nav_log_out) {
+            final AuthUser user = realm.where(AuthUser.class).findFirst();
+            NetRequest.logOut(user.getToken(), new Response.Listener<OphotoMessage>() {
+                @Override
+                public void onResponse(OphotoMessage response) {
+                    finish();
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    finish();
+                }
+            }, getApplicationContext());
         }
-        if (fragment != null) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
-            item.setChecked(true);
-            setTitle(item.getTitle());
+        for (Map.Entry<Fragment, Integer> fragment : fragments.entrySet()) {
+            String fragTag = fragment.getKey().getClass().getSimpleName();
+            boolean isAdded = fragmentManager.findFragmentByTag(fragTag) != null;
+            if (id == fragment.getValue()) {
+                if (isAdded)
+                    fragmentManager.beginTransaction().show(fragment.getKey()).commit();
+                else
+                    fragmentManager.beginTransaction().add(R.id.container, fragment.getKey(), fragTag).commit();
+            } else {
+                if (isAdded)
+                    fragmentManager.beginTransaction().hide(fragment.getKey()).commit();
+            }
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

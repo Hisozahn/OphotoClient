@@ -19,4 +19,9 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="greetings">Greeting</string>
+    <string name="new_image">New image</string>
+    <string name="description">Description</string>
+    <string name="post">Post</string>
+    <string name="create_new_post">Create new post</string>
+    <string name="image">Image</string>
 </resources>
