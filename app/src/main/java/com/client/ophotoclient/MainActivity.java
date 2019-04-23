@@ -60,10 +60,33 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public void openProfile(String user) {
+        ProfileFragment fragment = (ProfileFragment) fragments.get(R.id.nav_profile);
+        fragment.setUser(user);
+        switchFragment(R.id.nav_profile);
+    }
+
+    private void switchFragment(int id) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        for (Map.Entry<Integer, Fragment> fragment : fragments.entrySet()) {
+            String fragTag = fragment.getValue().getClass().getSimpleName();
+            boolean isAdded = fragmentManager.findFragmentByTag(fragTag) != null;
+            if (id == fragment.getKey()) {
+                if (isAdded)
+                    fragmentManager.beginTransaction().show(fragment.getValue()).commit();
+                else
+                    fragmentManager.beginTransaction().add(R.id.container, fragment.getValue(), fragTag).commit();
+            } else {
+                if (isAdded)
+                    fragmentManager.beginTransaction().hide(fragment.getValue()).commit();
+            }
+        }
+    }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
-        FragmentManager fragmentManager = getSupportFragmentManager();
 
         if (id == R.id.nav_log_out) {
             final AuthUser user = realm.where(AuthUser.class).findFirst();
@@ -78,23 +101,11 @@ public class MainActivity extends AppCompatActivity
                     finish();
                 }
             }, getApplicationContext());
-        }
-        if (id == R.id.nav_refresh) {
+        } else if (id == R.id.nav_refresh) {
             FeedFragment feedFragment = (FeedFragment)fragments.get(R.id.nav_feed);
             feedFragment.refresh();
-        }
-        for (Map.Entry<Integer, Fragment> fragment : fragments.entrySet()) {
-            String fragTag = fragment.getValue().getClass().getSimpleName();
-            boolean isAdded = fragmentManager.findFragmentByTag(fragTag) != null;
-            if (id == fragment.getKey()) {
-                if (isAdded)
-                    fragmentManager.beginTransaction().show(fragment.getValue()).commit();
-                else
-                    fragmentManager.beginTransaction().add(R.id.container, fragment.getValue(), fragTag).commit();
-            } else {
-                if (isAdded)
-                    fragmentManager.beginTransaction().hide(fragment.getValue()).commit();
-            }
+        } else {
+            switchFragment(id);
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

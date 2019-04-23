@@ -45,7 +45,6 @@ public class FeedFragment extends Fragment {
                 List<Post> posts = new ArrayList<>();
                 int i = 0;
                 for (String id : response.getPosts()) {
-                    System.out.println("Received: " + id);
                     posts.add(new Post(id, null));
                     final int finalIndex = i;
                     NetRequest.getPost(user.getToken(), id, new Response.Listener<Post>() {

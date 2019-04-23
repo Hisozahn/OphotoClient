@@ -10,10 +10,12 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.client.ophotoclient.objects.Credentials;
+import com.client.ophotoclient.objects.ImageResponse;
 import com.client.ophotoclient.objects.OphotoMessage;
 import com.client.ophotoclient.objects.Post;
 import com.client.ophotoclient.objects.PostResponse;
 import com.client.ophotoclient.objects.PostsResponse;
+import com.client.ophotoclient.objects.UserResponse;
 
 import org.json.JSONObject;
 
@@ -36,6 +38,9 @@ public class NetRequest {
     private static final String publishPostURL = portalURL + "/post";
     private static final String getPostsURL = portalURL + "/get_posts";
     private static final String getPostURL = portalURL + "/get_post";
+    private static final String getUserURL = portalURL + "/get_user";
+    private static final String getImageURL = portalURL + "/get_image";
+    private static final String setUserImageURL = portalURL + "/set_user_image";
 
 
     private static final int MAX_T = 3;
@@ -129,6 +134,64 @@ public class NetRequest {
                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 Post post = new Post(response.getDescription(), decodedByte);
                 listener.onResponse(post);
+            }
+        }, getErrorListener(errorListener, context));
+        NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
+    }
+
+    public static void getUser(final String token, final String userName,
+                               final Response.Listener<UserResponse> listener,
+                               final Response.ErrorListener errorListener,
+                               final Context context) {
+        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+            put("token", token);
+            put("name", userName);
+        }});
+        System.out.println(request.toString());
+        GsonOphotoRequest<UserResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, getUserURL,
+                request.toString(), UserResponse.class, listener, getErrorListener(errorListener, context));
+        NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
+    }
+
+    public static void setUserImage(final String token, final Bitmap image,
+                               final Response.Listener<OphotoMessage> listener,
+                               final Response.ErrorListener errorListener,
+                               final Context context) {
+        Thread compress = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                image.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+                final byte[] byteArray = byteArrayOutputStream.toByteArray();
+                JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+                    put("token", token);
+                    put("image", Base64.encodeToString(byteArray, Base64.NO_WRAP));
+                }});
+                GsonOphotoRequest<OphotoMessage> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, setUserImageURL,
+                        request.toString(), OphotoMessage.class, listener, getErrorListener(errorListener, context));
+                NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
+            }
+        });
+        pool.execute(compress);
+    }
+
+
+    public static void getImage(final String token, final String imageId,
+                               final Response.Listener<Bitmap> listener,
+                               final Response.ErrorListener errorListener,
+                               final Context context) {
+        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+            put("token", token);
+            put("image_id", imageId);
+        }});
+        System.out.println(request.toString());
+        GsonOphotoRequest<ImageResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, getImageURL,
+                request.toString(), ImageResponse.class, new Response.Listener<ImageResponse>() {
+            @Override
+            public void onResponse(ImageResponse response) {
+                byte[] decodedString = Base64.decode(response.getImage(), Base64.NO_WRAP);
+                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                listener.onResponse(decodedByte);
             }
         }, getErrorListener(errorListener, context));
         NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
