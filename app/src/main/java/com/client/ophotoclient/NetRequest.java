@@ -156,7 +156,7 @@ public class NetRequest {
             public void onResponse(PostResponse response) {
                 byte[] decodedString = Base64.decode(response.getImage(), Base64.NO_WRAP);
                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                Post post = new Post(response.getDescription(), decodedByte, response.getUser());
+                Post post = new Post(post_id, response.getDescription(), decodedByte, response.getUser());
                 listener.onResponse(post);
             }
         }, getErrorListener(errorListener, context));

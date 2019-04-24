@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity
         Map<Integer, Fragment> aMap = new HashMap<>();
         aMap.put(R.id.nav_feed, new FeedFragment());
         aMap.put(R.id.nav_profile, new ProfileFragment());
+        aMap.put(R.id.nav_post, new PostFragment());
         aMap.put(R.id.nav_create_post, new CreatePostFragment());
         fragments = Collections.unmodifiableMap(aMap);
     }
@@ -64,6 +65,12 @@ public class MainActivity extends AppCompatActivity
         ProfileFragment fragment = (ProfileFragment) fragments.get(R.id.nav_profile);
         fragment.setUser(user);
         switchFragment(R.id.nav_profile);
+    }
+
+    public void openPost(String postId) {
+        PostFragment fragment = (PostFragment) fragments.get(R.id.nav_post);
+        fragment.setPostId(postId);
+        switchFragment(R.id.nav_post);
     }
 
     private void switchFragment(int id) {

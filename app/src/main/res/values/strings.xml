@@ -29,4 +29,6 @@
     <string name="follow">Follow</string>
     <string name="bio">Bio</string>
     <string name="profile_image">Profile image</string>
+    <string name="like">Like</string>
+    <string name="likes">Likes</string>
 </resources>

@@ -46,7 +46,7 @@ public class FeedFragment extends Fragment {
                 List<Post> posts = new ArrayList<>();
                 int i = 0;
                 for (String id : response.getPosts()) {
-                    posts.add(new Post(id, null, "No user"));
+                    posts.add(new Post(id, null, null, "No user"));
                     final int finalIndex = i;
                     NetRequest.getPost(token, id, new Response.Listener<Post>() {
                         @Override
@@ -105,6 +105,12 @@ public class FeedFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAdapter = new PostAdapter(new ArrayList<Post>());
+        mAdapter.setClickListener(new PostAdapter.ItemClickListener() {
+            @Override
+            public void onItemClick(Post post) {
+                ((MainActivity)getActivity()).openPost(post.getId());
+            }
+        });
         System.out.println("Feed frag created");
 
     }

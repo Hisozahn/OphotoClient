@@ -26,7 +26,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     public void setPosts(List<Post> posts) {
         this.posts = posts;
     }
-    public void setPost(Post post, int position) { posts.set(position, post); }
+    public void setPost(Post post, int position) {
+        Post p = posts.get(position);
+        p.setImage(post.getImage());
+        p.setDescription(post.getDescription());
+        p.setUserName(post.getUserName());
+        posts.set(position, p);
+    }
     public void setPostUserImage(Bitmap image, int position) {
         Post post = posts.get(position);
         post.setUserImage(image);
@@ -49,7 +55,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         @Override
         public void onClick(View view) {
             if (mClickListener != null)
-                mClickListener.onItemClick(view, getAdapterPosition());
+                mClickListener.onItemClick(posts.get(getAdapterPosition()));
         }
     }
 
@@ -96,6 +102,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     }
     // parent activity will implement this method to respond to click events
     public interface ItemClickListener {
-        void onItemClick(View view, int position);
+        void onItemClick(Post post);
     }
 }

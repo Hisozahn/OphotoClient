@@ -7,6 +7,11 @@ public class Post extends OphotoMessage{
     private Bitmap image;
     private String userName;
     private Bitmap userImage;
+    private String id;
+
+    public String getId() {
+        return id;
+    }
 
     public Bitmap getUserImage() {
         return userImage;
@@ -40,7 +45,8 @@ public class Post extends OphotoMessage{
         this.image = image;
     }
 
-    public Post(String description, Bitmap image, String user) {
+    public Post(String id, String description, Bitmap image, String user) {
+        this.id = id;
         this.description = description;
         this.image = image;
         this.userName = user;
