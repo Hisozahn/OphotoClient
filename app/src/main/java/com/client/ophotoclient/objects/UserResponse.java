@@ -1,18 +1,26 @@
 package com.client.ophotoclient.objects;
 
+import android.graphics.Bitmap;
+
 import java.util.List;
 
 public class UserResponse extends OphotoMessage {
     private String bio;
     private List<String> follows;
-    private String image_id;
+    private Bitmap image;
 
-    public String getImage_id() {
-        return image_id;
+    public UserResponse(String bio, List<String> follows, Bitmap image) {
+        this.bio = bio;
+        this.follows = follows;
+        this.image = image;
     }
 
-    public void setImage_id(String image_id) {
-        this.image_id = image_id;
+    public Bitmap getImage() {
+        return image;
+    }
+
+    public void setImage(Bitmap image) {
+        this.image = image;
     }
 
     public String getBio() {

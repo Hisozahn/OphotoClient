@@ -21,6 +21,7 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,7 +29,12 @@ public class NetRequest {
     public static enum PostType {
         FOLLOWING,
         FOLLOWERS,
-        SELF
+        ALL
+    }
+    public static enum UserType {
+        FOLLOWING,
+        FOLLOWERS,
+        ALL
     }
 
     private static final String portalURL = "http://192.168.0.101:8888";
@@ -41,6 +47,9 @@ public class NetRequest {
     private static final String getUserURL = portalURL + "/get_user";
     private static final String getImageURL = portalURL + "/get_image";
     private static final String setUserImageURL = portalURL + "/set_user_image";
+    private static final String setUserBioURL = portalURL + "/set_user_bio";
+    private static final String userFollowURL = portalURL + "/user_follow";
+    private static final String findUsersURL = portalURL + "/find_users";
 
 
     private static final int MAX_T = 3;
@@ -117,11 +126,26 @@ public class NetRequest {
         NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
     }
 
+    public static void findUsers(final String token, final String query, final UserType type,
+                                final Response.Listener<PostsResponse> listener,
+                                final Response.ErrorListener errorListener,
+                                final Context context) {
+        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+            put("token", token);
+            put("query", query);
+            put("search_type", type.toString());
+        }});
+        System.out.println(request.toString());
+        GsonOphotoRequest<PostsResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, findUsersURL,
+                request.toString(), PostsResponse.class, listener, getErrorListener(errorListener, context));
+        NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
+    }
+
     public static void getPost(final String token, final String post_id,
                                 final Response.Listener<Post> listener,
                                 final Response.ErrorListener errorListener,
                                 final Context context) {
-        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+        final JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
             put("token", token);
             put("post_id", post_id);
         }});
@@ -132,24 +156,65 @@ public class NetRequest {
             public void onResponse(PostResponse response) {
                 byte[] decodedString = Base64.decode(response.getImage(), Base64.NO_WRAP);
                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                Post post = new Post(response.getDescription(), decodedByte);
+                Post post = new Post(response.getDescription(), decodedByte, response.getUser());
                 listener.onResponse(post);
             }
         }, getErrorListener(errorListener, context));
         NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
     }
 
+    private static class UserInnerResponse extends OphotoMessage {
+        private String bio;
+        private List<String> follows;
+        private String image;
+
+        public String getImage() {
+            return image;
+        }
+
+        public void setImage(String image) {
+            this.image = image;
+        }
+
+        public String getBio() {
+            return bio;
+        }
+
+        public void setBio(String bio) {
+            this.bio = bio;
+        }
+
+        public List<String> getFollows() {
+            return follows;
+        }
+
+        public void setFollows(List<String> follows) {
+            this.follows = follows;
+        }
+    }
+
     public static void getUser(final String token, final String userName,
                                final Response.Listener<UserResponse> listener,
                                final Response.ErrorListener errorListener,
                                final Context context) {
-        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+        final JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
             put("token", token);
             put("name", userName);
         }});
         System.out.println(request.toString());
-        GsonOphotoRequest<UserResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, getUserURL,
-                request.toString(), UserResponse.class, listener, getErrorListener(errorListener, context));
+        GsonOphotoRequest<UserInnerResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, getUserURL,
+                request.toString(), UserInnerResponse.class, new Response.Listener<UserInnerResponse>() {
+            @Override
+            public void onResponse(UserInnerResponse response) {
+                Bitmap bitmap = null;
+                if (!response.getImage().isEmpty()) {
+                    byte[] decodedString = Base64.decode(response.getImage(), Base64.NO_WRAP);
+                    bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                }
+                UserResponse userResponse = new UserResponse(response.getBio(), response.getFollows(), bitmap);
+                listener.onResponse(userResponse);
+            }
+        }, getErrorListener(errorListener, context));
         NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
     }
 
@@ -175,6 +240,32 @@ public class NetRequest {
         pool.execute(compress);
     }
 
+    public static void setUserBio(final String token, final String bio,
+                                    final Response.Listener<OphotoMessage> listener,
+                                    final Response.ErrorListener errorListener,
+                                    final Context context) {
+        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+            put("token", token);
+            put("bio", bio);
+        }});
+        GsonOphotoRequest<OphotoMessage> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, setUserBioURL,
+                request.toString(), OphotoMessage.class, listener, getErrorListener(errorListener, context));
+        NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
+    }
+
+    public static void followUser(final String token, final String followName, final String value,
+                                  final Response.Listener<OphotoMessage> listener,
+                                  final Response.ErrorListener errorListener,
+                                  final Context context) {
+        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+            put("token", token);
+            put("follow_name", followName);
+            put("value", value);
+        }});
+        GsonOphotoRequest<OphotoMessage> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, userFollowURL,
+                request.toString(), OphotoMessage.class, listener, getErrorListener(errorListener, context));
+        NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
+    }
 
     public static void getImage(final String token, final String imageId,
                                final Response.Listener<Bitmap> listener,

@@ -1,5 +1,6 @@
 package com.client.ophotoclient;
 
+import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -26,14 +27,23 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         this.posts = posts;
     }
     public void setPost(Post post, int position) { posts.set(position, post); }
+    public void setPostUserImage(Bitmap image, int position) {
+        Post post = posts.get(position);
+        post.setUserImage(image);
+        posts.set(position, post);
+    }
     public class PostViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         // each data item is just a string in this case
+        ImageView userImage;
+        TextView userName;
         ImageView image;
         TextView description;
         public PostViewHolder(View row) {
             super(row);
             image = row.findViewById(R.id.image);
             description = row.findViewById(R.id.description);
+            userImage = row.findViewById(R.id.user_image);
+            userName = row.findViewById(R.id.user_name);
             itemView.setOnClickListener(this);
         }
         @Override
@@ -66,6 +76,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         // - replace the contents of the view with that element
         holder.image.setImageBitmap(posts.get(position).getImage());
         holder.description.setText(posts.get(position).getDescription());
+        holder.userImage.setImageBitmap(posts.get(position).getUserImage());
+        holder.userName.setText(posts.get(position).getUserName());
     }
 
     Post getItem(int id) {

@@ -85,14 +85,7 @@ public class ProfileFragment extends Fragment {
             public void onResponse(UserResponse userResponse) {
                 bio.setText(userResponse.getBio());
                 text.setText(String.format("Followers: %d", userResponse.getFollows().size()));
-                if (!userResponse.getImage_id().isEmpty()) {
-                    NetRequest.getImage(user.getToken(), userResponse.getImage_id(), new Response.Listener<Bitmap>() {
-                        @Override
-                        public void onResponse(Bitmap imageResponse) {
-                            image.setImageBitmap(imageResponse);
-                        }
-                    }, null, getContext());
-                }
+                image.setImageBitmap(userResponse.getImage());
             }
 
         }, null, getContext());

@@ -16,6 +16,7 @@ import com.android.volley.Response;
 import com.client.ophotoclient.objects.AuthUser;
 import com.client.ophotoclient.objects.Post;
 import com.client.ophotoclient.objects.PostsResponse;
+import com.client.ophotoclient.objects.UserResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,20 +39,27 @@ public class FeedFragment extends Fragment {
     public void refresh() {
         if (mAdapter == null)
             return;
-        final AuthUser user = realm.where(AuthUser.class).findFirst();
-        NetRequest.getPosts(user.getToken(), NetRequest.PostType.FOLLOWING, new Response.Listener<PostsResponse>() {
+        final String token = realm.where(AuthUser.class).findFirst().getToken();
+        NetRequest.getPosts(token, NetRequest.PostType.ALL, new Response.Listener<PostsResponse>() {
             @Override
             public void onResponse(PostsResponse response) {
                 List<Post> posts = new ArrayList<>();
                 int i = 0;
                 for (String id : response.getPosts()) {
-                    posts.add(new Post(id, null));
+                    posts.add(new Post(id, null, "No user"));
                     final int finalIndex = i;
-                    NetRequest.getPost(user.getToken(), id, new Response.Listener<Post>() {
+                    NetRequest.getPost(token, id, new Response.Listener<Post>() {
                         @Override
                         public void onResponse(Post response) {
                             mAdapter.setPost(response, finalIndex);
                             mAdapter.notifyDataSetChanged();
+                            NetRequest.getUser(token, response.getUserName(), new Response.Listener<UserResponse>() {
+                                @Override
+                                public void onResponse(UserResponse response) {
+                                    mAdapter.setPostUserImage(response.getImage(), finalIndex);
+                                    mAdapter.notifyDataSetChanged();
+                                }
+                            }, null, getContext());
                         }
                     }, null, getContext());
                     i++;
