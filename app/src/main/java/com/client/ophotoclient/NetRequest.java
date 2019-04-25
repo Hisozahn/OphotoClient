@@ -15,6 +15,7 @@ import com.client.ophotoclient.objects.OphotoMessage;
 import com.client.ophotoclient.objects.Post;
 import com.client.ophotoclient.objects.PostResponse;
 import com.client.ophotoclient.objects.PostsResponse;
+import com.client.ophotoclient.objects.UserFollowsResponse;
 import com.client.ophotoclient.objects.UserResponse;
 import com.client.ophotoclient.objects.UsersResponse;
 
@@ -46,6 +47,7 @@ public class NetRequest {
     private static final String getPostsURL = portalURL + "/get_posts";
     private static final String getPostURL = portalURL + "/get_post";
     private static final String getUserURL = portalURL + "/get_user";
+    private static final String getUserFollowURL = portalURL + "/get_user_follow";
     private static final String getImageURL = portalURL + "/get_image";
     private static final String setUserImageURL = portalURL + "/set_user_image";
     private static final String setUserBioURL = portalURL + "/set_user_bio";
@@ -216,6 +218,19 @@ public class NetRequest {
                 listener.onResponse(userResponse);
             }
         }, getErrorListener(errorListener, context));
+        NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
+    }
+
+    public static void getUserFollow(final String token, final String name,
+                                  final Response.Listener<UserFollowsResponse> listener,
+                                  final Response.ErrorListener errorListener,
+                                  final Context context) {
+        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+            put("token", token);
+            put("name", name);
+        }});
+        GsonOphotoRequest<UserFollowsResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, getUserFollowURL,
+                request.toString(), UserFollowsResponse.class, listener, getErrorListener(errorListener, context));
         NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
     }
 

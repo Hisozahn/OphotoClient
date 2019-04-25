@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity
 
     public void openProfile(String user) {
         ProfileFragment fragment = (ProfileFragment) fragments.get(R.id.nav_profile);
-        fragment.setUser(user);
+        fragment.setProfileUser(user);
         switchFragment(R.id.nav_profile);
     }
 

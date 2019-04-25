@@ -10,6 +10,7 @@ import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,7 @@ import android.widget.TextView;
 import com.android.volley.Response;
 import com.client.ophotoclient.objects.AuthUser;
 import com.client.ophotoclient.objects.OphotoMessage;
+import com.client.ophotoclient.objects.UserFollowsResponse;
 import com.client.ophotoclient.objects.UserResponse;
 
 import java.io.FileDescriptor;
@@ -34,11 +36,12 @@ public class ProfileFragment extends Fragment {
     private EditText bio;
     private TextView text;
     private Button followButton;
-    private String user;
+    private String currentUser;
+    private String profileUser;
     private int READ_REQUEST_CODE = 444;
 
-    public void setUser(String user) {
-        this.user = user;
+    public void setProfileUser(String profileUser) {
+        this.profileUser = profileUser;
     }
 
     @Override
@@ -46,6 +49,27 @@ public class ProfileFragment extends Fragment {
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.profile_fragment, container, false);
     }
+    private View.OnClickListener currentUserImageOnClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+            // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+            // browser.
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+
+            // Filter to only show results that can be "opened", such as a
+            // file (as opposed to a list of contacts or timezones)
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+            // Filter to show only images, using the image MIME data type.
+            // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
+            // To search for all documents available via installed storage providers,
+            // it would be "*/*".
+            intent.setType("image/*");
+
+            startActivityForResult(intent, READ_REQUEST_CODE);
+        }
+    };
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -58,37 +82,10 @@ public class ProfileFragment extends Fragment {
         bio = getActivity().findViewById(R.id.profile_bio);
         text = getActivity().findViewById(R.id.profile_followers);
         followButton = getActivity().findViewById(R.id.profile_follow_button);
-        text.append(" of " + (user != null ? user.getName() : "Unknown"));
-        this.user = user.getName();
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
-                // browser.
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
 
-                // Filter to only show results that can be "opened", such as a
-                // file (as opposed to a list of contacts or timezones)
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-                // Filter to show only images, using the image MIME data type.
-                // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
-                // To search for all documents available via installed storage providers,
-                // it would be "*/*".
-                intent.setType("image/*");
-
-                startActivityForResult(intent, READ_REQUEST_CODE);
-            }
-        });
-        NetRequest.getUser(user.getToken(), user.getName(), new Response.Listener<UserResponse>() {
-            @Override
-            public void onResponse(UserResponse userResponse) {
-                bio.setText(userResponse.getBio());
-                text.setText(String.format("Followers: %d", userResponse.getFollows().size()));
-                image.setImageBitmap(userResponse.getImage());
-            }
-
-        }, null, getContext());
+        currentUser = user.getName();
+        this.profileUser = user.getName();
+        setupCurrentUser();
     }
     private Bitmap getBitmapFromUri(Uri uri) throws IOException {
         ParcelFileDescriptor parcelFileDescriptor =
@@ -99,11 +96,76 @@ public class ProfileFragment extends Fragment {
         return image;
     }
 
+    private void setupOtherUser() {
+        final AuthUser user = realm.where(AuthUser.class).findFirst();
+        image.setOnClickListener(null);
+        NetRequest.getUserFollow(user.getToken(), profileUser, new Response.Listener<UserFollowsResponse>() {
+            @Override
+            public void onResponse(final UserFollowsResponse followsResponse) {
+                NetRequest.getUser(user.getToken(), profileUser, new Response.Listener<UserResponse>() {
+                    @Override
+                    public void onResponse(UserResponse userResponse) {
+                        final boolean follows = followsResponse.getFollows().equals("1");
+                        bio.setText(userResponse.getBio());
+                        text.setText(R.string.following + userResponse.getFollows().size());
+                        image.setImageBitmap(userResponse.getImage());
+                        bio.setEnabled(false);
+                        followButton.setEnabled(true);
+                        followButton.setText(follows ? "Unfollow" : "Follow");
+                        followButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                NetRequest.followUser(user.getToken(), profileUser, follows ? "0" : "1", new Response.Listener<OphotoMessage>() {
+                                    @Override
+                                    public void onResponse(OphotoMessage response) {
+                                        setupOtherUser();
+                                    }
+                                }, null, getContext());
+                            }
+                        });
+                    }
+
+                }, null, getContext());
+            }
+        }, null, getContext());
+
+    }
+    private void setupCurrentUser() {
+        final AuthUser user = realm.where(AuthUser.class).findFirst();
+        image.setOnClickListener(currentUserImageOnClick);
+        NetRequest.getUser(user.getToken(), user.getName(), new Response.Listener<UserResponse>() {
+            @Override
+            public void onResponse(UserResponse userResponse) {
+                bio.setText(userResponse.getBio());
+                text.setText(R.string.following + userResponse.getFollows().size());
+                image.setImageBitmap(userResponse.getImage());
+                bio.setEnabled(true);
+                followButton.setEnabled(false);
+                bio.setOnKeyListener(new View.OnKeyListener() {
+                    @Override
+                    public boolean onKey(View v, int keyCode, KeyEvent event) {
+                        if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                            NetRequest.setUserBio(user.getToken(), bio.getText().toString(), new Response.Listener<OphotoMessage>() {
+                                @Override
+                                public void onResponse(OphotoMessage response) {
+                                    System.out.println("User bio changed");
+                                }
+                            }, null, getContext());
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+            }
+
+        }, null, getContext());
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            // The document selected by the user won't be returned in the intent.
+            // The document selected by the profileUser won't be returned in the intent.
             // Instead, a URI to that document will be contained in the return intent
             // provided to this method as a parameter.
             // Pull that URI using resultData.getData().
@@ -128,9 +190,12 @@ public class ProfileFragment extends Fragment {
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
         if (hidden) {
-            user = realm.where(AuthUser.class).findFirst().getName();
+            profileUser = currentUser;
         } else {
-
+            if (profileUser.equals(currentUser))
+                setupCurrentUser();
+            else
+                setupOtherUser();
         }
     }
 }

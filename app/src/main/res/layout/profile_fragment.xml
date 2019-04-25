@@ -20,7 +20,7 @@
         android:id="@+id/profile_followers"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/followers"
+        android:text="@string/following"
         android:textSize="@android:dimen/app_icon_size"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
