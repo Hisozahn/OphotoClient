@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity
         aMap.put(R.id.nav_profile, new ProfileFragment());
         aMap.put(R.id.nav_post, new PostFragment());
         aMap.put(R.id.nav_create_post, new CreatePostFragment());
+        aMap.put(R.id.nav_search, new SearchFragment());
         fragments = Collections.unmodifiableMap(aMap);
     }
     @Override

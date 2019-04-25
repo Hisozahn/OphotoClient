@@ -17,12 +17,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     private List<Post> posts;
     private ItemClickListener mClickListener;
 
-    // Provide a reference to the views for each data item
-    // Complex data items may need more than one view per item, and
-    // you provide access to all the views for a data item in a view holder
-    public void addPost(@NonNull Post post) {
-        posts.add(post);
-    }
     public void setPosts(List<Post> posts) {
         this.posts = posts;
     }
@@ -70,7 +64,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                                                      int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.row_layout, parent, false);
+                .inflate(R.layout.post_row_layout, parent, false);
         PostViewHolder vh = new PostViewHolder(v);
         return vh;
     }

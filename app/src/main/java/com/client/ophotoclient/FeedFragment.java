@@ -10,8 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.recyclerview.selection.SelectionTracker;
-
 import com.android.volley.Response;
 import com.client.ophotoclient.objects.AuthUser;
 import com.client.ophotoclient.objects.Post;
@@ -25,10 +23,7 @@ import io.realm.Realm;
 
 public class FeedFragment extends Fragment {
     private Realm realm = Realm.getDefaultInstance();
-
     private PostAdapter mAdapter;
-    private SelectionTracker mTracker;
-
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -45,24 +40,27 @@ public class FeedFragment extends Fragment {
             public void onResponse(PostsResponse response) {
                 List<Post> posts = new ArrayList<>();
                 int i = 0;
-                for (String id : response.getPosts()) {
-                    posts.add(new Post(id, null, null, "No user"));
-                    final int finalIndex = i;
-                    NetRequest.getPost(token, id, new Response.Listener<Post>() {
-                        @Override
-                        public void onResponse(Post response) {
-                            mAdapter.setPost(response, finalIndex);
-                            mAdapter.notifyDataSetChanged();
-                            NetRequest.getUser(token, response.getUserName(), new Response.Listener<UserResponse>() {
-                                @Override
-                                public void onResponse(UserResponse response) {
-                                    mAdapter.setPostUserImage(response.getImage(), finalIndex);
-                                    mAdapter.notifyDataSetChanged();
-                                }
-                            }, null, getContext());
-                        }
-                    }, null, getContext());
-                    i++;
+                List<String> postIds = response.getPosts();
+                if (postIds != null) {
+                    for (String id : postIds) {
+                        posts.add(new Post(id, null, null, "No user"));
+                        final int finalIndex = i;
+                        NetRequest.getPost(token, id, new Response.Listener<Post>() {
+                            @Override
+                            public void onResponse(Post response) {
+                                mAdapter.setPost(response, finalIndex);
+                                mAdapter.notifyDataSetChanged();
+                                NetRequest.getUser(token, response.getUserName(), new Response.Listener<UserResponse>() {
+                                    @Override
+                                    public void onResponse(UserResponse response) {
+                                        mAdapter.setPostUserImage(response.getImage(), finalIndex);
+                                        mAdapter.notifyDataSetChanged();
+                                    }
+                                }, null, getContext());
+                            }
+                        }, null, getContext());
+                        i++;
+                    }
                 }
                 mAdapter.setPosts(posts);
                 mAdapter.notifyDataSetChanged();
@@ -75,30 +73,10 @@ public class FeedFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         refresh();
 
-        RecyclerView recyclerView = getActivity().findViewById(R.id.my_recycler_view);
-
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        recyclerView.setHasFixedSize(true);
-
-        // use a linear layout manager
+        RecyclerView recyclerView = getActivity().findViewById(R.id.feed_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // specify an adapter (see also next example)
-
         recyclerView.setAdapter(mAdapter);
-//        mTracker = new SelectionTracker.Builder<>(
-//                "image", recyclerView,
-//                new StableIdKeyProvider(recyclerView),
-//                new PostDetailsLookup(recyclerView),
-//                StorageStrategy.createLongStorage()).withOnItemActivatedListener(new OnItemActivatedListener<Long>() {
-//            @Override
-//            public boolean onItemActivated(@NonNull ItemDetailsLookup.ItemDetails<Long> item, @NonNull MotionEvent e) {
-//                System.out.println(item.getPosition());
-//                return true;
-//            }
-//        }).build();
-//        mTracker.onRestoreInstanceState(savedInstanceState);
     }
 
     @Override
@@ -114,11 +92,4 @@ public class FeedFragment extends Fragment {
         System.out.println("Feed frag created");
 
     }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-//        mTracker.onSaveInstanceState(outState);
-    }
-
 }

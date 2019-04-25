@@ -16,6 +16,7 @@ import com.client.ophotoclient.objects.Post;
 import com.client.ophotoclient.objects.PostResponse;
 import com.client.ophotoclient.objects.PostsResponse;
 import com.client.ophotoclient.objects.UserResponse;
+import com.client.ophotoclient.objects.UsersResponse;
 
 import org.json.JSONObject;
 
@@ -127,7 +128,7 @@ public class NetRequest {
     }
 
     public static void findUsers(final String token, final String query, final UserType type,
-                                final Response.Listener<PostsResponse> listener,
+                                final Response.Listener<UsersResponse> listener,
                                 final Response.ErrorListener errorListener,
                                 final Context context) {
         JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
@@ -136,8 +137,8 @@ public class NetRequest {
             put("search_type", type.toString());
         }});
         System.out.println(request.toString());
-        GsonOphotoRequest<PostsResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, findUsersURL,
-                request.toString(), PostsResponse.class, listener, getErrorListener(errorListener, context));
+        GsonOphotoRequest<UsersResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, findUsersURL,
+                request.toString(), UsersResponse.class, listener, getErrorListener(errorListener, context));
         NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
     }
 
