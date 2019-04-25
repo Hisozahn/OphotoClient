@@ -6,12 +6,13 @@
 
     <ImageView
         android:id="@+id/user_image"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:contentDescription="@string/image" />
 
     <TextView
         android:id="@+id/user_name"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:textSize="12pt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 </LinearLayout>

@@ -37,7 +37,7 @@ public class ProfileFragment extends Fragment {
     private TextView text;
     private Button followButton;
     private String currentUser;
-    private String profileUser;
+    private String profileUser = null;
     private int READ_REQUEST_CODE = 444;
 
     public void setProfileUser(String profileUser) {
@@ -72,20 +72,21 @@ public class ProfileFragment extends Fragment {
     };
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        final AuthUser user = realm.where(AuthUser.class).findFirst();
+        currentUser = user.getName();
+    }
+
+    @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         System.out.println("Profile frag created");
-        final AuthUser user = realm.where(AuthUser.class).findFirst();
-        if (getActivity() == null)
-            return;
         image = getActivity().findViewById(R.id.profile_image);
         bio = getActivity().findViewById(R.id.profile_bio);
         text = getActivity().findViewById(R.id.profile_followers);
         followButton = getActivity().findViewById(R.id.profile_follow_button);
-
-        currentUser = user.getName();
-        this.profileUser = user.getName();
-        setupCurrentUser();
+        refresh();
     }
     private Bitmap getBitmapFromUri(Uri uri) throws IOException {
         ParcelFileDescriptor parcelFileDescriptor =
@@ -94,6 +95,13 @@ public class ProfileFragment extends Fragment {
         Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
         parcelFileDescriptor.close();
         return image;
+    }
+
+    private void refresh() {
+        if (profileUser == null || profileUser.equals(currentUser))
+            setupCurrentUser();
+        else
+            setupOtherUser();
     }
 
     private void setupOtherUser() {
@@ -190,12 +198,9 @@ public class ProfileFragment extends Fragment {
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
         if (hidden) {
-            profileUser = currentUser;
+            profileUser = null;
         } else {
-            if (profileUser.equals(currentUser))
-                setupCurrentUser();
-            else
-                setupOtherUser();
+            refresh();
         }
     }
 }

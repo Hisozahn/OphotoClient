@@ -11,6 +11,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.client.ophotoclient.objects.Credentials;
 import com.client.ophotoclient.objects.ImageResponse;
+import com.client.ophotoclient.objects.LikesResponse;
 import com.client.ophotoclient.objects.OphotoMessage;
 import com.client.ophotoclient.objects.Post;
 import com.client.ophotoclient.objects.PostResponse;
@@ -53,6 +54,8 @@ public class NetRequest {
     private static final String setUserBioURL = portalURL + "/set_user_bio";
     private static final String userFollowURL = portalURL + "/user_follow";
     private static final String findUsersURL = portalURL + "/find_users";
+    private static final String postGetLikesURL = portalURL + "/post_get_likes";
+    private static final String postLikeURL = portalURL + "/post_like";
 
 
     private static final int MAX_T = 3;
@@ -126,6 +129,20 @@ public class NetRequest {
         System.out.println(request.toString());
         GsonOphotoRequest<PostsResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, getPostsURL,
                 request.toString(), PostsResponse.class, listener, getErrorListener(errorListener, context));
+        NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
+    }
+
+    public static void getPostLikes(final String token, final String postId,
+                                final Response.Listener<LikesResponse> listener,
+                                final Response.ErrorListener errorListener,
+                                final Context context) {
+        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+            put("token", token);
+            put("post_id", postId);
+        }});
+        System.out.println(request.toString());
+        GsonOphotoRequest<LikesResponse> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, postGetLikesURL,
+                request.toString(), LikesResponse.class, listener, getErrorListener(errorListener, context));
         NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
     }
 
@@ -279,6 +296,20 @@ public class NetRequest {
             put("value", value);
         }});
         GsonOphotoRequest<OphotoMessage> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, userFollowURL,
+                request.toString(), OphotoMessage.class, listener, getErrorListener(errorListener, context));
+        NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
+    }
+
+    public static void likePost(final String token, final String postId, final String value,
+                                  final Response.Listener<OphotoMessage> listener,
+                                  final Response.ErrorListener errorListener,
+                                  final Context context) {
+        JSONObject request = new JSONObject(new HashMap<Object, Object>() {{
+            put("token", token);
+            put("post_id", postId);
+            put("value", value);
+        }});
+        GsonOphotoRequest<OphotoMessage> ophotoRequest = new GsonOphotoRequest<>(Request.Method.POST, postLikeURL,
                 request.toString(), OphotoMessage.class, listener, getErrorListener(errorListener, context));
         NetQueue.getInstance(context).addToRequestQueue(ophotoRequest);
     }
