@@ -107,7 +107,7 @@ public class ProfileFragment extends Fragment {
                     public void onResponse(UserResponse userResponse) {
                         final boolean follows = followsResponse.getFollows().equals("1");
                         bio.setText(userResponse.getBio());
-                        text.setText(R.string.following + userResponse.getFollows().size());
+                        text.setText(getString(R.string.following) + ": " + userResponse.getFollows().size());
                         image.setImageBitmap(userResponse.getImage());
                         bio.setEnabled(false);
                         followButton.setEnabled(true);
@@ -137,7 +137,7 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onResponse(UserResponse userResponse) {
                 bio.setText(userResponse.getBio());
-                text.setText(R.string.following + userResponse.getFollows().size());
+                text.setText(getString(R.string.following) + ": " +  userResponse.getFollows().size());
                 image.setImageBitmap(userResponse.getImage());
                 bio.setEnabled(true);
                 followButton.setEnabled(false);

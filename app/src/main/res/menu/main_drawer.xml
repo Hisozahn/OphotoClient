@@ -18,17 +18,17 @@
             android:title="@string/create_new_post" />
         <item
             android:id="@+id/nav_search"
-            android:title="@string/Search" />
+            android:title="@string/search" />
     </group>
 
     <item android:title="@string/actions">
         <menu>
             <item
-                android:id="@+id/nav_log_out"
-                android:title="@string/log_out" />
-            <item
                 android:id="@+id/nav_refresh"
                 android:title="@string/refresh" />
+            <item
+                android:id="@+id/nav_log_out"
+                android:title="@string/log_out" />
         </menu>
     </item>
 

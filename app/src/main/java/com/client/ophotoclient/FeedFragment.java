@@ -35,7 +35,7 @@ public class FeedFragment extends Fragment {
         if (mAdapter == null)
             return;
         final String token = realm.where(AuthUser.class).findFirst().getToken();
-        NetRequest.getPosts(token, NetRequest.PostType.ALL, new Response.Listener<PostsResponse>() {
+        NetRequest.getPosts(token, NetRequest.PostType.FOLLOWING, new Response.Listener<PostsResponse>() {
             @Override
             public void onResponse(PostsResponse response) {
                 List<Post> posts = new ArrayList<>();
